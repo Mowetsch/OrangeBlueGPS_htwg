@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ORANGE_BLUE-GPS</title>
+</head>
+
+
+<body>
+<div id = "root">
+    <div id = "possition">
+        Position:
+        <span id="lat">lat---</span>,
+        <span id="lon">lon---</span>
+    </div>
+    <div id = "map">
+
+    </div>
+
+    <script>
+        fetch("https://organgeblue2gps.mo681wei.workers.dev/")
+            .then(r => r.json())
+            .then(pos => {
+                document.getElementById("lat").innerText = pos.lat;
+                document.getElementById("lon").innerText = pos.lon;
+            });
+    </script>
+</div>
+</body>
+</html>
