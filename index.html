@@ -3,27 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <title>ORANGE_BLUE-GPS</title>
+    <style>
+        #map {
+            width: 600px;
+            height: 400px;
+            margin-top: 10px;
+        }
+    </style>
+    <!-- Leaflet CSS für Karte -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
-
-
 <body>
-<div id = "root">
-    <div id = "possition">
-        Position:
-        <span id="lat">lat---</span>,
-        <span id="lon">lon---</span>
+<div id="root">
+    <div id="position">
+        Position: 
+        <span id="lat">---</span>, 
+        <span id="lon">---</span>
     </div>
-    <div id = "map">
+    <div id="map"></div>
 
-    </div>
-
+    <!-- Leaflet JS für Karte -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        fetch("https://organgeblue2gps.mo681wei.workers.dev/")
+        const workerUrl = "https://organgeblue2gps.mo681wei.workers.dev/";
+
+        fetch(workerUrl)
             .then(r => r.json())
             .then(pos => {
-                document.getElementById("lat").innerText = pos.lat;
-                document.getElementById("lon").innerText = pos.lon;
-            });
+                if (!pos) return;
+
+                // Textfelder aktualisieren
+                document.getElementById("lat").innerText = pos.latitude;
+                document.getElementById("lon").innerText = pos.longitude;
+
+                // Karte anzeigen
+                const map = L.map('map').setView([pos.latitude, pos.longitude], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap'
+                }).addTo(map);
+
+                // Marker setzen
+                L.marker([pos.latitude, pos.longitude])
+                    .addTo(map)
+                    .bindPopup(`Device: ${pos.device}<br>Altitude: ${pos.altitude_m ?? '-'} m`)
+                    .openPopup();
+            })
+            .catch(err => console.error("Fehler beim Laden der GPS-Daten:", err));
     </script>
 </div>
 </body>
