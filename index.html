@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <title>ORANGE-BLUE-GPS</title>
     <link rel="stylesheet" href="index.css" />
+
+
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 
@@ -32,57 +37,44 @@
 
 </div>
 
-
-
-
-
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    const gpsUrl = "http://<server-ip>:3000/gps"; // Docker oder Worker URL
+    const GPS_URL = "https://organgeblue2gps.mo681wei.workers.dev/";
+    // oder: http://<server-ip>:3000/gps
 
-    // Leaflet Karte initialisieren
-    const map = L.map('map').setView([0, 0], 2); // Start bei 0,0
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '© OpenStreetMap'
+    const map = L.map("map").setView([0, 0], 2);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution: "© OpenStreetMap"
     }).addTo(map);
 
     let marker = null;
 
-    // Funktion: GPS-Daten abrufen und Karte aktualisieren
-    async function updatePosition() {
-        try {
-            const res = await fetch(gpsUrl);
-            const pos = await res.json();
-            if(!pos) return;
+    async function loadGps() {
+        const res = await fetch(GPS_URL);
+        const pos = await res.json();
+        if (!pos) return;
 
-            // Textfelder aktualisieren
-            document.getElementById("lat").innerText = pos.latitude;
-            document.getElementById("lon").innerText = pos.longitude;
+        // Text aktualisieren
+        document.getElementById("lat").innerText = pos.latitude;
+        document.getElementById("lon").innerText = pos.longitude;
 
-            // Marker setzen oder verschieben
-            if(marker){
-                marker.setLatLng([pos.latitude, pos.longitude]);
-            } else {
-                marker = L.marker([pos.latitude, pos.longitude]).addTo(map)
-                    .bindPopup(`Device: ${pos.device}<br>Altitude: ${pos.altitude_m ?? '-'} m`)
-                    .openPopup();
-            }
 
-            // Karte zentrieren
+        if (!marker) {
+            marker = L.marker([pos.latitude, pos.longitude]).addTo(map);
             map.setView([pos.latitude, pos.longitude], 13);
-
-        } catch(err){
-            console.error("Fehler beim Laden der GPS-Daten:", err);
+        } else {
+            marker.setLatLng([pos.latitude, pos.longitude]);
         }
     }
 
-    // Initial laden
-    updatePosition();
-
-    // Auto-Refresh alle 10 Sekunden
-    setInterval(updatePosition, 10000);
+    loadGps();
+    setInterval(loadGps, 10000); // alle 10s aktualisieren
 </script>
+
+
+
+
+
 
 </body>
 </html>
