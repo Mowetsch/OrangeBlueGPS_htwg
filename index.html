@@ -2,55 +2,87 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ORANGE_BLUE-GPS</title>
-    <style>
-        #map {
-            width: 600px;
-            height: 400px;
-            margin-top: 10px;
-        }
-    </style>
-    <!-- Leaflet CSS für Karte -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>ORANGE-BLUE-GPS</title>
+    <link rel="stylesheet" href="index.css" />
 </head>
+
+
 <body>
-<div id="root">
-    <div id="position">
-        Position: 
-        <span id="lat">---</span>, 
-        <span id="lon">---</span>
+<div id = "root" class="full">
+
+
+    <div id="top" class="dark heavy" >
+
+        <div id="center" class="flex">ORANGE-BLUE GPS </div>
+
     </div>
-    <div id="map"></div>
 
-    <!-- Leaflet JS für Karte -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const workerUrl = "https://organgeblue2gps.mo681wei.workers.dev/";
+    <div id="main" class="light">
 
-        fetch(workerUrl)
-            .then(r => r.json())
-            .then(pos => {
-                if (!pos) return;
+        <div id="position">
+            Position: <span id="lat">....</span>, <span id="lon">....</span>
+        </div>
+        <div id="map"></div>
 
-                // Textfelder aktualisieren
-                document.getElementById("lat").innerText = pos.latitude;
-                document.getElementById("lon").innerText = pos.longitude;
+    </div>
 
-                // Karte anzeigen
-                const map = L.map('map').setView([pos.latitude, pos.longitude], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    maxZoom: 19,
-                    attribution: '© OpenStreetMap'
-                }).addTo(map);
+    <div id="bottom" class="dark">
+        project by Moritz  für tobias beck
+    </div>
 
-                // Marker setzen
-                L.marker([pos.latitude, pos.longitude])
-                    .addTo(map)
+</div>
+
+
+
+
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const gpsUrl = "http://<server-ip>:3000/gps"; // Docker oder Worker URL
+
+    // Leaflet Karte initialisieren
+    const map = L.map('map').setView([0, 0], 2); // Start bei 0,0
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let marker = null;
+
+    // Funktion: GPS-Daten abrufen und Karte aktualisieren
+    async function updatePosition() {
+        try {
+            const res = await fetch(gpsUrl);
+            const pos = await res.json();
+            if(!pos) return;
+
+            // Textfelder aktualisieren
+            document.getElementById("lat").innerText = pos.latitude;
+            document.getElementById("lon").innerText = pos.longitude;
+
+            // Marker setzen oder verschieben
+            if(marker){
+                marker.setLatLng([pos.latitude, pos.longitude]);
+            } else {
+                marker = L.marker([pos.latitude, pos.longitude]).addTo(map)
                     .bindPopup(`Device: ${pos.device}<br>Altitude: ${pos.altitude_m ?? '-'} m`)
                     .openPopup();
-            })
-            .catch(err => console.error("Fehler beim Laden der GPS-Daten:", err));
-    </script>
-</div>
+            }
+
+            // Karte zentrieren
+            map.setView([pos.latitude, pos.longitude], 13);
+
+        } catch(err){
+            console.error("Fehler beim Laden der GPS-Daten:", err);
+        }
+    }
+
+    // Initial laden
+    updatePosition();
+
+    // Auto-Refresh alle 10 Sekunden
+    setInterval(updatePosition, 10000);
+</script>
+
 </body>
 </html>
