@@ -43,8 +43,8 @@
 
 <script>
     const GPS_URL = "https://organgeblue2gps.mo681wei.workers.dev/";
-    // oder: http://<server-ip>:3000/gps
 
+    // 1️⃣ Karte IMMER initialisieren
     const map = L.map("map").setView([0, 0], 2);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -53,26 +53,31 @@
 
     let marker = null;
 
+    // 2️⃣ GPS optional nachladen
     async function loadGps() {
-        const res = await fetch(GPS_URL);
-        const pos = await res.json();
-        if (!pos) return;
+        try {
+            const res = await fetch(GPS_URL);
+            if (!res.ok) throw new Error("GPS offline");
 
-        // Text aktualisieren
-        document.getElementById("lat").innerText = pos.latitude;
-        document.getElementById("lon").innerText = pos.longitude;
+            const pos = await res.json();
+            if (!pos) return;
 
+            document.getElementById("lat").innerText = pos.latitude;
+            document.getElementById("lon").innerText = pos.longitude;
 
-        if (!marker) {
-            marker = L.marker([pos.latitude, pos.longitude]).addTo(map);
-            map.setView([pos.latitude, pos.longitude], 13);
-        } else {
-            marker.setLatLng([pos.latitude, pos.longitude]);
+            if (!marker) {
+                marker = L.marker([pos.latitude, pos.longitude]).addTo(map);
+                map.setView([pos.latitude, pos.longitude], 13);
+            } else {
+                marker.setLatLng([pos.latitude, pos.longitude]);
+            }
+        } catch (e) {
+            console.warn("GPS nicht erreichbar");
         }
     }
 
     loadGps();
-    setInterval(loadGps, 10000); // alle 10s aktualisieren
+    setInterval(loadGps, 10000);
 </script>
 
 
