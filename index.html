@@ -36,15 +36,13 @@
     </div>
 
     <div id="bottom" class="dark">
-        project by ....
+        Projekt von Moritz Weis, Samuel Ebinger | Betreut durch Prof. Dr. Boris Böck
     </div>
 
 </div>
 
 <script>
-    const GPS_URL = "https://organgeblue2gps.mo681wei.workers.dev/";
-
-    // 1️⃣ Karte IMMER initialisieren
+    const gps_url = "https://organgeblue2gps.mo681wei.workers.dev/";
     const map = L.map("map").setView([0, 0], 2);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -53,33 +51,32 @@
 
     let marker = null;
 
-    // 2️⃣ GPS optional nachladen
     async function loadGps() {
         try {
-            const res = await fetch(GPS_URL);
-            if (!res.ok) throw new Error("GPS offline");
+            const res = await fetch(gps_url);
+            if (!res.ok) throw new Error("No Data");
 
             const pos = await res.json();
-            if (!pos) return;
+            if (!pos || !pos.latitude || !pos.longitude) return;
 
-            document.getElementById("lat").innerText = pos.latitude;
-            document.getElementById("lon").innerText = pos.longitude;
+            document.getElementById("lat").innerText = pos.latitude.toFixed(5);
+            document.getElementById("lon").innerText = pos.longitude.toFixed(5);
 
             if (!marker) {
                 marker = L.marker([pos.latitude, pos.longitude]).addTo(map);
-                map.setView([pos.latitude, pos.longitude], 13);
+                map.setView([pos.latitude, pos.longitude], 12);
             } else {
                 marker.setLatLng([pos.latitude, pos.longitude]);
             }
         } catch (e) {
-            console.warn("GPS nicht erreichbar");
+            console.warn("Keine verbindung zu JS", e);
         }
     }
 
-    loadGps();
-    setInterval(loadGps, 10000);
-</script>
 
+    loadGps();
+    setInterval(loadGps, 7000);
+</script>
 
 
 
